@@ -72,14 +72,12 @@ export_env_vars() {
 
 # Start jupyter lab
 start_jupyter() {
-    if [[ $JUPYTER_PASSWORD ]]; then
-        echo "Starting Jupyter Lab..."
-        mkdir -p /workspace && \
-        cd / && \
-        conda activate cell2fate_env && \
-        nohup jupyter lab --allow-root --no-browser --port=8888 --ip=* --FileContentsManager.delete_to_trash=False --ServerApp.terminado_settings='{"shell_command":["/bin/bash"]}' --ServerApp.token=1202 --ServerApp.allow_origin=* --ServerApp.preferred_dir=/workspace &> /jupyter.log &
-        echo "Jupyter Lab started"
-    fi
+    echo "Starting Jupyter Lab..."
+    mkdir -p /workspace && \
+    cd / && \
+    conda activate cell2fate_env && \
+    nohup jupyter lab --allow-root --no-browser --port=8888 --ip=* --FileContentsManager.delete_to_trash=False --ServerApp.terminado_settings='{"shell_command":["/bin/bash"]}' --ServerApp.token=1202 --ServerApp.allow_origin=* --ServerApp.preferred_dir=/workspace &> /jupyter.log &
+    echo "Jupyter Lab started"
 }
 
 # Check if all required ports are available

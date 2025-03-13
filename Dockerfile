@@ -1,12 +1,15 @@
 # Use NVIDIA CUDA base image compatible with Python 3.9
-FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu20.04
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
 ENV SHELL=/bin/bash
-ENV PATH=/opt/conda/bin:$PATH
+ENV PATH=/opt/conda/bin:/usr/local/cuda/bin:$PATH
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV CUDA_LAUNCH_BLOCKING=1
 
 # Set the working directory
 WORKDIR /
@@ -14,10 +17,16 @@ WORKDIR /
 # Create workspace directory
 RUN mkdir /workspace
 
-# Update, upgrade, install packages
+# Set up locales
 RUN apt-get update --yes && \
-    apt-get upgrade --yes && \
-    apt install --yes --no-install-recommends \
+    apt-get install --yes --no-install-recommends locales && \
+    echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
+    locale-gen
+
+# Update and install packages
+RUN apt-get update --yes && \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && \
+    DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends \
     git \
     wget \
     curl \
@@ -26,23 +35,25 @@ RUN apt-get update --yes && \
     software-properties-common \
     openssh-server \
     nginx \
-    ca-certificates && \
-    apt-get autoremove -y && \
+    ca-certificates
+
+# Clean up
+RUN apt-get autoremove -y && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
+    rm -rf /var/lib/apt/lists/*
 
 # Install Miniconda
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && \
     bash Miniconda3-latest-Linux-x86_64.sh -b -p /opt/conda && \
     rm Miniconda3-latest-Linux-x86_64.sh
 
-# Create cell2fate environment
+# Create cell2fate environment with CUDA support
 RUN conda create -y -n cell2fate_env python=3.9 && \
     conda clean -afy
 
-# Install cell2fate and its dependencies
+# Install CUDA-enabled PyTorch and cell2fate dependencies
 RUN source /opt/conda/bin/activate cell2fate_env && \
+    conda install -y pytorch cudatoolkit=11.8 -c pytorch -c nvidia && \
     pip install --no-cache-dir git+https://github.com/BayraktarLab/cell2fate && \
     pip install --no-cache-dir \
     ipykernel \
@@ -63,7 +74,7 @@ COPY container-template/proxy/nginx.conf /etc/nginx/nginx.conf
 COPY container-template/proxy/readme.html /usr/share/nginx/html/readme.html
 
 # Start script
-COPY container-template/start.sh /
+COPY start.sh /
 RUN chmod +x /start.sh
 
 # Configure conda init for bash
