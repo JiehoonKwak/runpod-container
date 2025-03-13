@@ -1,3 +1,54 @@
-*.ckpt
-*.safetensors
-*.pth
+# Cline & GH
+### https://github.com/GreatScottyMac/roo-code-memory-bank
+.clinerules*
+cline_docs/
+memory-bank/
+.github
+.roomodes*
+projectBrief*
+
+
+# macOS
+.env
+.DS_Store
+._*
+.idea/
+.vscode/
+*.swp
+*.swo
+*.log
+logs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+venv/
+.venv/
+env/
+.pytest_cache/
+.ipynb_checkpoints
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+
+/.quarto/
+/_site/
+
+# Data & Large files
+/data/
+/ref/
+/output/
+/plot/
+/tmp/
+*.h5
+*.h5ad
+*.rds
+*.bam
+*.fastq*
+*.fasta*
+*.gz
+*.qs
